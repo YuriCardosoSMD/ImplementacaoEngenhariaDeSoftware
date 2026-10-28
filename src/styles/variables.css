@@ -1,0 +1,22 @@
+:root {
+  --bg-primary: #ffffff;
+  --bg-grouped: #f2f2f7;
+  --fill-primary: rgba(120, 120, 120, 0.2);
+  --label-secondary: rgba(60, 60, 67, 0.6);
+  --label-tertiary: rgba(60, 60, 67, 0.3);
+  --vibrant-tertiary: #bfbfbf;
+  --black: #000000;
+ 
+  --green: #34c759;
+  --indigo: #6155f5;
+  --mint: #00c8b3;
+  --pink: #ff2d55;
+  --red: #ff383c;
+  --orange: #ff8d28;
+  --yellow: #ffcc00;
+  --cyan: #00c0e8;
+ 
+  --radius: 20px;
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 8px rgba(0, 0, 0, 0.09), 0 18px 11px rgba(0, 0, 0, 0.05);
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif;
+}
