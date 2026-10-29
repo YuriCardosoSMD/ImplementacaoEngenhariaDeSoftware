@@ -1,6 +1,11 @@
 import { formatar } from '../utils/estatisticas';
+import type { Nivel } from '../utils/estatisticas';
  
-export default function LevelCard({ nivel }) {
+interface LevelCardProps {
+  nivel: Nivel;
+}
+
+export default function LevelCard({ nivel }: LevelCardProps) {
   return (
     <div className="nivel" style={{ background: nivel.cor }} aria-live="polite">
       <span className="nivel-label">Nível</span>

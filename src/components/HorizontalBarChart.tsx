@@ -1,4 +1,12 @@
-export default function HorizontalBarChart({ dados, max, passo }) {
+import type { OrigemParticipante } from '../data/dados';
+
+interface HorizontalBarChartProps {
+  dados: OrigemParticipante[];
+  max: number;
+  passo: number;
+}
+
+export default function HorizontalBarChart({ dados, max, passo }: HorizontalBarChartProps) {
   const ticks = Array.from({ length: max / passo + 1 }, (_, i) => i * passo);
  
   return (

@@ -1,6 +1,12 @@
 import { useState } from 'react';
+import type { Comentario } from '../data/dados';
  
-export default function CommentsTable({ comentarios, limite = 4 }) {
+interface CommentsTableProps {
+  comentarios: Comentario[];
+  limite?: number;
+}
+
+export default function CommentsTable({ comentarios, limite = 4 }: CommentsTableProps) {
   const [verTodos, setVerTodos] = useState(false);
   const lista = verTodos ? comentarios : comentarios.slice(0, limite);
  

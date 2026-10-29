@@ -7,7 +7,7 @@ const NIVEIS = [
   { min: 0, rotulo: 'Muito ruim', cor: 'rgba(255, 56, 60, 0.6)' },
 ];
  
-export function calcularEstatisticas(notas) {
+export function calcularEstatisticas(notas: number[]): Estatisticas {
   const total = notas.reduce((a, b) => a + b, 0);
   if (total === 0) return { media: null, moda: null, mediana: null };
  
@@ -17,7 +17,7 @@ export function calcularEstatisticas(notas) {
   const maior = Math.max(...notas);
   const moda = notas.indexOf(maior) + 1;
  
-  const notaNaPosicao = (pos) => {
+  const notaNaPosicao = (pos: number): number | null => {
     let acumulado = 0;
     for (let i = 0; i < notas.length; i++) {
       acumulado += notas[i];
@@ -29,20 +29,31 @@ export function calcularEstatisticas(notas) {
   const mediana =
     total % 2 === 1
       ? notaNaPosicao((total + 1) / 2)
-      : (notaNaPosicao(total / 2) + notaNaPosicao(total / 2 + 1)) / 2;
+      : ((notaNaPosicao(total / 2) ?? 0) + (notaNaPosicao(total / 2 + 1) ?? 0)) / 2;
  
   return { media, moda, mediana };
 }
  
 // Converte a média (1 a 5) para a escala de 0 a 10
-export function obterNivel(media) {
+export function obterNivel(media: number | null): Nivel {
   if (media == null) return { valor: null, rotulo: 'Sem dados', cor: 'var(--bg-grouped)' };
   const valor = media * 2;
   const faixa = NIVEIS.find((f) => valor >= f.min);
-  return { valor, ...faixa };
+  return { valor, ...(faixa ?? NIVEIS[NIVEIS.length - 1]) };
 }
  
-export function formatar(numero) {
+export function formatar(numero: number | null) {
   if (numero == null || Number.isNaN(numero)) return '–';
   return numero.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+}
+export interface Estatisticas {
+  media: number | null;
+  moda: number | null;
+  mediana: number | null;
+}
+
+export interface Nivel {
+  valor: number | null;
+  rotulo: string;
+  cor: string;
 }

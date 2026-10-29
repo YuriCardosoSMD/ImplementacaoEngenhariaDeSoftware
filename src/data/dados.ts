@@ -1,3 +1,27 @@
+export interface Resumo {
+  participantes: number;
+  oficinas: number;
+  assiduidade: string;
+}
+
+export interface OrigemParticipante {
+  label: string;
+  valor: number;
+  cor: string;
+}
+
+export interface Avaliacao {
+  id: number | 'geral';
+  nome: string;
+  notas: number[];
+}
+
+export interface Comentario {
+  id: string;
+  oficina: number;
+  texto: string;
+}
+
 export const resumo = {
   participantes: 15,
   oficinas: 4,
@@ -15,7 +39,7 @@ export const origemParticipantes = [
 export const CORES_NOTAS = ['var(--red)', 'var(--orange)', 'var(--yellow)', 'var(--green)', 'var(--cyan)'];
  
 // notas = quantidade de pessoas que deram nota 1, 2, 3, 4 e 5
-export const oficinas = [
+export const oficinas: Avaliacao[] = [
   { id: 1, nome: 'Oficina 1 - Tema ABC', notas: [2, 1, 0, 0, 3] },
   { id: 2, nome: 'Oficina 2 - Tema DEF', notas: [1, 1, 1, 0, 2] },
   { id: 3, nome: 'Oficina 3 - Tema GHI', notas: [1, 0, 1, 1, 2] },
@@ -28,7 +52,7 @@ const notasGerais = oficinas.reduce(
   [0, 0, 0, 0, 0]
 );
  
-export const filtrosAvaliacao = [
+export const filtrosAvaliacao: Avaliacao[] = [
   { id: 'geral', nome: 'Notas gerais', notas: notasGerais },
   ...oficinas,
 ];
@@ -36,7 +60,7 @@ export const filtrosAvaliacao = [
 const lorem =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.';
  
-export const comentarios = [
+export const comentarios: Comentario[] = [
   { id: '01', oficina: 1, texto: lorem },
   { id: '12', oficina: 2, texto: lorem },
   { id: '12', oficina: 3, texto: lorem },

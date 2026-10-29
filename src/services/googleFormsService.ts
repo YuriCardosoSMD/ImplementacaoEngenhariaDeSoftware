@@ -1,6 +1,19 @@
-// src/services/googleFormsService.js
+import type { Avaliacao, Comentario, OrigemParticipante, Resumo } from '../data/dados';
 
-const CORES_ORIGEM = {
+interface Registro {
+  _linha: number;
+  _aba?: string;
+  [chave: string]: string | number | undefined;
+}
+
+export interface DadosForms {
+  resumo: Resumo;
+  origemParticipantes: OrigemParticipante[];
+  filtrosAvaliacao: Avaliacao[];
+  comentarios: Comentario[];
+}
+
+const CORES_ORIGEM: Record<string, string> = {
   WhatsApp: 'var(--green)',
   Instagram: 'var(--indigo)',
   Indicação: 'var(--mint)',
@@ -14,9 +27,9 @@ const OFICINAS_PADRAO = [
   { id: 4, nome: 'Oficina 4 - Tema JKL' },
 ];
 
-function parseCSV(csvText) {
-  const linhas = [];
-  let linhaAtual = [];
+function parseCSV(csvText: string): Registro[] {
+  const linhas: string[][] = [];
+  let linhaAtual: string[] = [];
   let campoAtual = '';
   let dentroDeAspas = false;
 
@@ -50,8 +63,8 @@ function parseCSV(csvText) {
   if (linhas.length <= 1) return [];
   const cabecalhos = linhas[0];
 
-  return linhas.slice(1).map((valores, idx) => {
-    const obj = { _linha: idx + 1 };
+  return linhas.slice(1).map((valores, idx): Registro => {
+    const obj: Registro = { _linha: idx + 1 };
     cabecalhos.forEach((col, i) => {
       obj[col] = valores[i] ?? '';
     });
@@ -59,31 +72,31 @@ function parseCSV(csvText) {
   });
 }
 
-function obterValorPorPalavraChave(registro, palavrasChave) {
+function obterValorPorPalavraChave(registro: Registro, palavrasChave: string[]): string {
   const chaves = Object.keys(registro);
 
   for (const palavra of palavrasChave) {
     const exata = chaves.find((k) => k.trim().toLowerCase() === palavra.toLowerCase());
-    if (exata !== undefined && registro[exata] !== '') return registro[exata];
+    if (exata !== undefined && registro[exata] !== '') return String(registro[exata] ?? '');
   }
 
   for (const palavra of palavrasChave) {
     const parcial = chaves.find((k) => k.toLowerCase().includes(palavra.toLowerCase()));
-    if (parcial !== undefined && registro[parcial] !== '') return registro[parcial];
+    if (parcial !== undefined && registro[parcial] !== '') return String(registro[parcial] ?? '');
   }
 
   return '';
 }
 
-function identificarOficinaId(textoOficina, nomeAba = '') {
+function identificarOficinaId(textoOficina: string, nomeAba = ''): number {
   const alvo = `${textoOficina} ${nomeAba}`;
   const match = alvo.match(/oficina\s*(\d+)/i) || alvo.match(/^(\d+)/);
   if (match) return Number(match[1]);
   return 1;
 }
 
-async function tentarBuscarRegistros(urls) {
-  let ultimoErro = null;
+async function tentarBuscarRegistros(urls: string[]): Promise<Registro[]> {
+  let ultimoErro: Error | null = null;
 
   for (const url of urls) {
     if (!url) continue;
@@ -100,18 +113,19 @@ async function tentarBuscarRegistros(urls) {
         );
       }
 
-      const registros = texto.startsWith('[') ? JSON.parse(texto) : parseCSV(texto);
+      const registros: Registro[] = texto.startsWith('[') ? JSON.parse(texto) : parseCSV(texto);
       return registros;
     } catch (err) {
-      console.warn(`Tentativa falhou na URL (${url}):`, err.message);
-      ultimoErro = err;
+      const erro = err instanceof Error ? err : new Error(String(err));
+      console.warn(`Tentativa falhou na URL (${url}):`, erro.message);
+      ultimoErro = erro;
     }
   }
 
   throw ultimoErro || new Error('Não foi possível conectar ao Google Forms/Sheets.');
 }
 
-export async function buscarDadosDoForms(urls) {
+export async function buscarDadosDoForms(urls: string | string[]): Promise<DadosForms> {
   const listaUrls = Array.isArray(urls) ? urls : [urls];
   const registros = await tentarBuscarRegistros(listaUrls);
 
@@ -126,7 +140,7 @@ export async function buscarDadosDoForms(urls) {
     OFICINAS_PADRAO.map((o) => [o.id, { ...o, notas: [0, 0, 0, 0, 0] }])
   );
 
-  const comentarios = [];
+  const comentarios: Comentario[] = [];
   const participantesIdentificados = new Set();
   let possuiCampoIdentificacao = false;
 
@@ -180,12 +194,19 @@ export async function buscarDadosDoForms(urls) {
         nome: oficinaResp || `Oficina ${oficinaId}`,
         notas: [0, 0, 0, 0, 0],
       });
-    } else if (oficinaResp) {
-      mapaOficinas.get(oficinaId).nome = oficinaResp;
+    }
+
+    const oficina = mapaOficinas.get(oficinaId);
+    if (!oficina) {
+      throw new Error(`Não foi possível preparar a oficina ${oficinaId}.`);
+    }
+
+    if (oficinaResp) {
+      oficina.nome = oficinaResp;
     }
 
     if (notaResp >= 1 && notaResp <= 5) {
-      mapaOficinas.get(oficinaId).notas[notaResp - 1]++;
+      oficina.notas[notaResp - 1]++;
     }
 
     if (comentarioTexto) {
@@ -204,7 +225,7 @@ export async function buscarDadosDoForms(urls) {
     [0, 0, 0, 0, 0]
   );
 
-  const filtrosAvaliacao = [
+  const filtrosAvaliacao: Avaliacao[] = [
     { id: 'geral', nome: 'Notas gerais', notas: notasGerais },
     ...oficinas,
   ];

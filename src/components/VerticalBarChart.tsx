@@ -1,6 +1,13 @@
 import { CORES_NOTAS } from '../data/dados';
  
-export default function VerticalBarChart({ titulo, notas, max, passo }) {
+interface VerticalBarChartProps {
+  titulo: string;
+  notas: number[];
+  max: number;
+  passo: number;
+}
+
+export default function VerticalBarChart({ titulo, notas, max, passo }: VerticalBarChartProps) {
   const ticks = Array.from({ length: max / passo + 1 }, (_, i) => i * passo);
  
   return (
