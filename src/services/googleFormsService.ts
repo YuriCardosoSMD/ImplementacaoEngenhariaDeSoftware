@@ -13,6 +13,14 @@ export interface DadosForms {
   comentarios: Comentario[];
 }
 
+interface CachePayload {
+  timestamp: number;
+  dados: DadosForms;
+}
+
+const CACHE_KEY_PREFIX = 'ufc-comunidade:forms-cache:';
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+
 const CORES_ORIGEM: Record<string, string> = {
   WhatsApp: 'var(--green)',
   Instagram: 'var(--indigo)',
@@ -26,6 +34,40 @@ const OFICINAS_PADRAO = [
   { id: 3, nome: 'Oficina 3 - Tema GHI' },
   { id: 4, nome: 'Oficina 4 - Tema JKL' },
 ];
+
+function obterCacheKey(urls: string[]): string {
+  return `${CACHE_KEY_PREFIX}${urls.join('|')}`;
+}
+
+function lerCache(chave: string): DadosForms | null {
+  try {
+    const salvo = window.sessionStorage.getItem(chave);
+    if (!salvo) return null;
+
+    const payload = JSON.parse(salvo) as CachePayload;
+    if (Date.now() - payload.timestamp > CACHE_TTL_MS) {
+      window.sessionStorage.removeItem(chave);
+      return null;
+    }
+
+    return payload.dados;
+  } catch (erro: unknown) {
+    console.warn('Não foi possível ler o cache da sessão:', erro);
+    return null;
+  }
+}
+
+function salvarCache(chave: string, dados: DadosForms): void {
+  try {
+    const payload: CachePayload = {
+      timestamp: Date.now(),
+      dados,
+    };
+    window.sessionStorage.setItem(chave, JSON.stringify(payload));
+  } catch (erro: unknown) {
+    console.warn('Não foi possível salvar os dados em cache na sessão:', erro);
+  }
+}
 
 function parseCSV(csvText: string): Registro[] {
   const linhas: string[][] = [];
@@ -55,14 +97,15 @@ function parseCSV(csvText: string): Registro[] {
       campoAtual += char;
     }
   }
+
   if (campoAtual || linhaAtual.length > 0) {
     linhaAtual.push(campoAtual.trim());
     if (linhaAtual.some((c) => c !== '')) linhas.push(linhaAtual);
   }
 
   if (linhas.length <= 1) return [];
-  const cabecalhos = linhas[0];
 
+  const cabecalhos = linhas[0];
   return linhas.slice(1).map((valores, idx): Registro => {
     const obj: Registro = { _linha: idx + 1 };
     cabecalhos.forEach((col, i) => {
@@ -101,15 +144,23 @@ async function tentarBuscarRegistros(urls: string[]): Promise<Registro[]> {
   for (const url of urls) {
     if (!url) continue;
     try {
-      const resposta = await fetch(url, { redirect: 'follow' });
+      // Adiciona um timestamp na URL para impedir que o navegador use versão em cache
+      const separador = url.includes('?') ? '&' : '?';
+      const urlSemCache = `${url}${separador}t=${Date.now()}`;
+
+      // Adiciona headers forçando o não-uso de cache
+      const resposta = await fetch(urlSemCache, { 
+        redirect: 'follow',
+        cache: 'no-store' 
+      });
+      
       if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
 
       const texto = (await resposta.text()).trim();
 
-      // Se o Google devolveu uma página de login HTML em vez dos dados:
       if (texto.startsWith('<!DOCTYPE html>') || texto.startsWith('<html')) {
         throw new Error(
-          'Permissão negada pelo Google ( retornou tela de login ). Verifique se a planilha está como "Qualquer pessoa com o link" ou se o Apps Script está aberto para "Qualquer pessoa".'
+          'Permissão negada pelo Google (retornou tela de login). Verifique se a planilha está como "Qualquer pessoa com o link" ou se o Apps Script está aberto para "Qualquer pessoa".'
         );
       }
 
@@ -125,8 +176,20 @@ async function tentarBuscarRegistros(urls: string[]): Promise<Registro[]> {
   throw ultimoErro || new Error('Não foi possível conectar ao Google Forms/Sheets.');
 }
 
-export async function buscarDadosDoForms(urls: string | string[]): Promise<DadosForms> {
+export async function buscarDadosDoForms(
+  urls: string | string[],
+  ignorarCache = false
+): Promise<DadosForms> {
   const listaUrls = Array.isArray(urls) ? urls : [urls];
+  const chaveCache = obterCacheKey(listaUrls);
+
+  if (!ignorarCache) {
+    const dadosEmCache = lerCache(chaveCache);
+    if (dadosEmCache) {
+      return dadosEmCache;
+    }
+  }
+
   const registros = await tentarBuscarRegistros(listaUrls);
 
   const contagemOrigem = {
@@ -141,7 +204,7 @@ export async function buscarDadosDoForms(urls: string | string[]): Promise<Dados
   );
 
   const comentarios: Comentario[] = [];
-  const participantesIdentificados = new Set();
+  const participantesIdentificados = new Set<string>();
   let possuiCampoIdentificacao = false;
 
   registros.forEach((reg, index) => {
@@ -188,6 +251,7 @@ export async function buscarDadosDoForms(urls: string | string[]): Promise<Dados
     }
 
     const oficinaId = identificarOficinaId(oficinaResp, reg._aba);
+
     if (!mapaOficinas.has(oficinaId)) {
       mapaOficinas.set(oficinaId, {
         id: oficinaId,
@@ -248,6 +312,7 @@ export async function buscarDadosDoForms(urls: string | string[]): Promise<Dados
     : maxRespostasNumaOficina;
 
   const totalOficinas = oficinas.length;
+
   const assiduidadeCalculada =
     baseParticipantesAssiduidade > 0 && totalOficinas > 0
       ? `${Math.min(
@@ -262,10 +327,14 @@ export async function buscarDadosDoForms(urls: string | string[]): Promise<Dados
     assiduidade: assiduidadeCalculada,
   };
 
-  return {
+  const resultado: DadosForms = {
     resumo,
     origemParticipantes,
     filtrosAvaliacao,
     comentarios,
   };
+
+  salvarCache(chaveCache, resultado);
+
+  return resultado;
 }
