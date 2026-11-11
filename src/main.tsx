@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles/variables.css';
 import './styles/dashboard.css';
- 
+import './styles/participantes.css';
+
 const rootElement = document.getElementById('root');
 
 if (!rootElement) {

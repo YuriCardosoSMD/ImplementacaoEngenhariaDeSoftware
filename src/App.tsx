@@ -5,10 +5,13 @@ import VerticalBarChart from './components/VerticalBarChart';
 import WorkshopFilter from './components/WorkshopFilter';
 import LevelCard from './components/LevelCard';
 import CommentsTable from './components/CommentsTable';
+import ParticipantesPage from './pages/ParticipantesPage';
 import { formatar } from './utils/estatisticas';
 import { useDashboardData } from './hooks/useDashboardData';
+import { ROTAS, useHashRoute } from './hooks/useHashRoute';
 
 export default function App() {
+  const rota = useHashRoute();
   const {
     filtro,
     setFiltro,
@@ -33,6 +36,10 @@ export default function App() {
     maxVertical,
   } = useDashboardData();
 
+  if (rota === 'participantes') {
+    return <ParticipantesPage />;
+  }
+
   return (
     <main className="dashboard">
       <Header
@@ -42,9 +49,7 @@ export default function App() {
         onRecarregar={recarregarDados}
         carregando={carregando}
       />
-
       {carregando && <p>A atualizar dados das respostas...</p>}
-
       {erroConexao && (
         <div
           style={{
@@ -58,18 +63,24 @@ export default function App() {
           Não foi possível carregar a planilha: {erroConexao}
         </div>
       )}
-
-      <section className="stats">
-        <StatCard
-          label="Quantidade de participantes totais"
-          valor={totalParticipantes}
-          editavel
-          onValorChange={atualizarParticipantesFiltro}
-        />
-        <StatCard label="Quantidade de oficinas" valor={quantidadeOficinas} />
-        <StatCard label="Taxa de assiduidade" valor={resumo.assiduidade} />
-      </section>
-
+      <div className="stats-wrap">
+        <section className="stats">
+          <StatCard
+            label="Quantidade de participantes totais"
+            valor={totalParticipantes}
+            editavel
+            onValorChange={atualizarParticipantesFiltro}
+          />
+          <StatCard label="Quantidade de oficinas" valor={quantidadeOficinas} />
+          <StatCard label="Taxa de assiduidade" valor={resumo.assiduidade} />
+        </section>
+        <a href={ROTAS.participantes} className="ver-todos">
+          Ver todos os participantes
+          <svg width="8" height="14" viewBox="0 0 8 14" aria-hidden="true">
+            <path d="M1 1l6 6-6 6" stroke="currentColor" strokeWidth="2" fill="none" />
+          </svg>
+        </a>
+      </div>
       <section className="section">
         <h2 className="section-title">Como conheceu o projeto?</h2>
         <HorizontalBarChart
@@ -78,7 +89,6 @@ export default function App() {
           passo={5}
         />
       </section>
-
       <section className="section">
         <h2 className="section-title">Avaliação</h2>
         <div className="avaliacao">
@@ -94,15 +104,12 @@ export default function App() {
             onChange={setFiltro}
           />
         </div>
-
         <div className="estatisticas">
           <StatCard size="sm" label="Média" valor={formatar(media)} />
           <StatCard size="sm" label="Moda" valor={formatar(moda)} />
           <StatCard size="sm" label="Mediana" valor={formatar(mediana)} />
         </div>
-
         <LevelCard nivel={nivel} />
-
         <CommentsTable comentarios={comentariosFiltrados} />
       </section>
     </main>

@@ -1,0 +1,213 @@
+/* ===== Link "Ver todos os participantes" na página principal ===== */
+.stats-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+a.ver-todos {
+  color: inherit;
+  text-decoration: none;
+}
+
+a.ver-todos:hover,
+button.ver-todos:hover {
+  text-decoration: underline;
+}
+
+/* ===== Página "Adicionar comentários por participantes" ===== */
+.pagina-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.pagina-header h1 {
+  font-size: clamp(26px, 3.4vw, 40px);
+  line-height: 1.1;
+}
+
+.pagina-header h1:focus {
+  outline: none;
+}
+
+.voltar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  color: inherit;
+  border-radius: 8px;
+}
+
+.voltar:hover { background: var(--bg-grouped); }
+
+.voltar:focus-visible,
+.switch-track:focus-visible,
+.comentario-input:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 2px;
+}
+
+.participantes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.part-tabela-wrap { overflow-x: auto; }
+
+.part-tabela {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Cabeçalho em "pílula" separada do corpo, como no protótipo */
+.part-tabela thead th {
+  position: relative;
+  z-index: 0;
+  padding: 10px 14px 18px;
+  font-size: 20px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.part-tabela thead th::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 8px 0;
+  z-index: -1;
+  background: var(--bg-grouped);
+  border-top: 1px solid var(--label-tertiary);
+  border-bottom: 1px solid var(--label-tertiary);
+}
+
+.part-tabela thead th + th::before { border-left: 1px solid var(--label-tertiary); }
+
+.part-tabela thead th:first-child::before {
+  border-left: 1px solid var(--label-tertiary);
+  border-radius: 12px 0 0 12px;
+}
+
+.part-tabela thead th:last-child::before {
+  border-right: 1px solid var(--label-tertiary);
+  border-radius: 0 12px 12px 0;
+}
+
+.part-th-comentario {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Corpo da tabela */
+.part-tabela tbody th,
+.part-tabela tbody td {
+  padding: 10px 14px;
+  border-right: 1px solid var(--label-secondary);
+  border-bottom: 1px solid var(--label-secondary);
+  font-size: 15px;
+  vertical-align: middle;
+  text-align: left;
+}
+
+.part-tabela tbody th { font-weight: 600; }
+.part-tabela tbody td { font-weight: 400; }
+
+.part-tabela tbody tr > :first-child { border-left: 1px solid var(--label-secondary); }
+.part-tabela tbody tr:first-child > * { border-top: 1px solid var(--label-secondary); }
+.part-tabela tbody tr:first-child > :first-child { border-top-left-radius: 12px; }
+.part-tabela tbody tr:first-child > :last-child { border-top-right-radius: 12px; }
+.part-tabela tbody tr:last-child > :first-child { border-bottom-left-radius: 12px; }
+.part-tabela tbody tr:last-child > :last-child { border-bottom-right-radius: 12px; }
+
+.part-tabela .part-nome { width: 160px; }
+
+.part-tabela .part-oficina {
+  width: 130px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.part-tabela thead .part-oficina { text-align: center; }
+
+.part-vazio {
+  text-align: center !important;
+  color: var(--label-secondary);
+}
+
+.comentario-input {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.2;
+  resize: vertical;
+}
+
+.comentario-input:hover { border-color: var(--fill-primary); }
+.comentario-input:focus { background: var(--bg-grouped); }
+.comentario-input::placeholder { color: var(--label-secondary); }
+
+/* Interruptor "Todos" */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.switch-track {
+  position: relative;
+  width: 52px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--vibrant-tertiary);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.switch-track.ligado { background: rgba(52, 199, 89, 0.6); }
+
+.switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s;
+}
+
+.switch-track.ligado .switch-thumb { transform: translateX(26px); }
+
+.ver-todos--lg { font-size: 15px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .switch-track, .switch-thumb { transition: none; }
+}
+
+@media (max-width: 600px) {
+  .pagina-header { gap: 8px; }
+  .part-tabela thead th { font-size: 16px; }
+  .part-tabela tbody th,
+  .part-tabela tbody td,
+  .comentario-input { font-size: 13px; }
+}
